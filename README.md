@@ -23,6 +23,7 @@ Open terminal
 On VS Code install remote - SSH extension ( https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh ) 
 
 Get ssh config from Vagrant
+
     vagrant ssh-config
 
 Add output to VS Code Remote-SSH config file.
@@ -30,10 +31,12 @@ Connect to vagrant box using Remote-SSH.
 
 Open terminal in VS Code and install needed packages:
 Upgrade default packages.
+
     sudo dnf update
     sudo dnf upgrade
 
 Add google cloud sdk repo
+
     sudo tee -a /etc/yum.repos.d/google-cloud-sdk.repo << EOM
     [google-cloud-sdk]
     name=Google Cloud SDK
@@ -46,15 +49,19 @@ Add google cloud sdk repo
     EOM
 
 Install google cloud sdk
+
     sudo dnf install google-cloud-sdk
 
 Initiate gcloud and give access to google account.
+
     gcloud init
 
 Install git
+
     sudo dnf install git
 
 Setup brew package manager
+
     sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/vagrant/.bash_profile
@@ -63,6 +70,7 @@ Setup brew package manager
     brew install gcc
 
 Install kubectl, terraform, and helm.
+
     sudo dnf install kubectl
     brew install terraform
     brew install helm

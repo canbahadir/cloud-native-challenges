@@ -76,6 +76,45 @@ Install kubectl, terraform, and helm.
     brew install helm
 
 ### TASK 1
+Create a kubernetes cluster. (3 Master, 1 Worker node)
+
+First we need to create 4 VMs which will be our kubernetes nodes.
+
+    for i in 0 1 2; do
+    gcloud compute instances create master-${i} \
+        --async \
+        --boot-disk-size 200GB \
+        --can-ip-forward \
+        --image-family ubuntu-1804-lts \
+        --image-project ubuntu-os-cloud \
+        --machine-type e2-standard-2 \
+        --private-network-ip 10.240.0.1${i} \
+        --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+        --subnet kubernetes \
+        --tags kubernetes-the-kubespray-way,controller
+    done
+
+    gcloud compute instances create worker-0 \
+    --async \
+    --boot-disk-size 200GB \
+    --can-ip-forward \
+    --image-family ubuntu-1804-lts \
+    --image-project ubuntu-os-cloud \
+    --machine-type e2-standard-2 \
+    --private-network-ip 10.240.0.20 \
+    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+    --subnet kubernetes \
+    --tags kubernetes-the-kubespray-way,worker
+
+Also we need to add a ssh key to communicate with VMs.
+
+    ssh-keygen -t rsa -b 4096 -C username -f /home/vagrant/username
+
+Add public key to a file that gcloud can parse.
+Check task1 folder for example.
+
+    gcloud compute project-info add-metadata --metadata-from-file ssh-keys=/home/vagrant/sshpubkeylist
+
 
 ### TASK 2
 

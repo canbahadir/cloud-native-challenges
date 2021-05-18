@@ -78,7 +78,34 @@ Install kubectl, terraform, and helm.
 ### TASK 1
 Create a kubernetes cluster. (3 Master, 1 Worker node)
 
-First we need to create 4 VMs which will be our kubernetes nodes.
+First create a VPC network on gcloud.
+
+    gcloud compute networks create kubernetes-the-kubespray-way --subnet-mode custom
+
+Create a subnet
+
+    gcloud compute networks subnets create kubernetes \
+    --network kubernetes-the-kubespray-way \
+    --range 10.240.0.0/24
+
+Add internal firewall rules
+
+    gcloud compute firewall-rules create kubernetes-the-kubespray-way-allow-internal \
+    --allow tcp,udp,icmp,ipip \
+    --network kubernetes-the-kubespray-way \
+    --source-ranges 10.240.0.0/24
+
+Add external firewall rules
+
+    gcloud compute firewall-rules create kubernetes-the-kubespray-way-allow-external \
+    --allow tcp:80,tcp:6443,tcp:443,tcp:22,icmp \
+    --network kubernetes-the-kubespray-way \
+    --source-ranges 0.0.0.0/0
+
+
+Create 4 VMs which will be our kubernetes nodes.
+
+3 VMs for master nodes.
 
     for i in 0 1 2; do
     gcloud compute instances create master-${i} \
@@ -93,6 +120,8 @@ First we need to create 4 VMs which will be our kubernetes nodes.
         --subnet kubernetes \
         --tags kubernetes-the-kubespray-way,controller
     done
+
+1 VM for worker node.
 
     gcloud compute instances create worker-0 \
     --async \
@@ -112,9 +141,37 @@ Also we need to add a ssh key to communicate with VMs.
 
 Add public key to a file that gcloud can parse.
 Check task1 folder for example.
+Upload this file to gcloud. This key can be used to do ssh access to all resources on gcloud.
 
     gcloud compute project-info add-metadata --metadata-from-file ssh-keys=/home/vagrant/sshpubkeylist
 
+Set-up Kubespray
+
+Create a virtual environment.
+
+    python3 -m venv venv
+    source venv/bin/activate
+
+Clone kubespray and switch to stable branch.
+
+    git clone https://github.com/kubernetes-sigs/kubespray.git
+    cd kubespray
+    git checkout release-2.13
+
+Install dependencies.
+
+    pip install -r requirements.txt
+
+Create cluster config.
+
+    cp -rfp inventory/sample inventory/mycluster
+
+Update ansible inventory file.
+
+    declare -a IPS=($(gcloud compute instances list --filter="tags.items=kubernetes-the-kubespray-way" --format="value(EXTERNAL_IP)"  | tr '\n' ' '))
+    CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
+
+Update inventory/mycluster/hosts.yaml as shown on task1/hosts.yaml
 
 ### TASK 2
 

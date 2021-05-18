@@ -217,6 +217,47 @@ STEPS:
     curl http://localhost:4000/bcfm
 
 ### TASK 4
+Create a CI/CD environment for app created in task3.
+    - Choose whatever tool you want
+    - CI/CD should start when there is a commit
+    - There should a SonarQube Check with QualityGate Check.
+    - CI/CD should deploy app to kubernetes with helm chart
+    - app should scale up to 10 pods when there is more %40 percent cpu usage
+
+
+Create a api key to upload docker image to gcloud so helm can deploy from there
+
+    gcloud iam service-accounts create dockerloader
+    gcloud projects add-iam-policy-binding casestudy-307604 --member "serviceAccount:dockerloader@casestudy-307604.iam.gserviceaccount.com" --role "roles/storage.admin"
+
+    gcloud iam service-accounts keys create keyfile.json --iam-account dockerloader@casestudy-307604.iam.gserviceaccount.com
+    gcloud auth activate-service-account dockerloader@casestudy-307604.iam.gserviceaccount.com --key-file=keyfile.json
+
+verify access
+
+    gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://HOSTNAME
+    docker login -u oauth2accesstoken -p "$(gcloud auth print-access-token)" https://HOSTNAME
+
+
+Retag docker image
+
+    sudo docker tag node-app:0.3 gcr.io/casestudy-307604/node-app
+
+
+Push docker image
+
+    sudo docker push gcr.io/casestudy-307604/node-app
+
+Create a helm chart
+
+    helm create helm-chart
+
+Update helm-chart/values.yaml and helm-chart/templates/services.yaml according to task4/helmchart.
+
+Deploy helm chart
+
+    helm install nodeapp helm-chart/
+
 
 ### TASK 5
 

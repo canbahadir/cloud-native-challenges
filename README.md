@@ -172,6 +172,35 @@ Update ansible inventory file.
     CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
 
 Update inventory/mycluster/hosts.yaml as shown on task1/hosts.yaml
+In inventory/mycluster/group_vars/k8s_cluster/k8s_cluster.yml change following part:
+
+    supplementary_addresses_in_ssl_keys: [master0_external_ip, master1_external_ip, master2_external_ip]
+
+In inventory/mycluster/group_vars/k8s_cluster/addons.yml set metrics_server_enabled to 'true'
+
+
+Deploy the configuration. (This will take around 20 min)
+
+    ansible-playbook -i inventory/mycluster/hosts.yaml -u username -b -v --private-key=/home/vagrant/username cluster.yml
+
+Get kubeconfig file
+
+    scp -i /home/vagrant/username $USERNAME@$IP_MASTER_0:/etc/kubernetes/admin.conf kubespray-do.conf
+
+Modify kubespray-do.conf by changing master0_internal_ip with master0_external_ip.
+
+Load the configuration for kubectl:
+
+    export KUBECONFIG=$PWD/kubespray-do.conf
+
+Now kubectl should be able to access nodes.
+
+    [vagrant@localhost kubespray-test]$ kubectl get nodes
+    NAME    STATUS   ROLES    AGE   VERSION
+    node1   Ready    master   9d    v1.17.12
+    node2   Ready    master   9d    v1.17.12
+    node3   Ready    master   9d    v1.17.12
+    node4   Ready    <none>   9d    v1.17.12
 
 ### TASK 2
 

@@ -4,3 +4,9 @@ steps:
   timeout: 500s
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/node-app-$BUILD_ID']
+- name: 'gcr.io/$PROJECT_ID/helm'
+  args: ['upgrade', '--cleanup-on-fail', 'nodeapp', 'task4/helm-chart/', '--set', 'image.repository=gcr.io/$PROJECT_ID/node-app-$BUILD_ID']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=gke_casestudy-307604_us-central1-c_jenkinscluster'
+tags: ['cloud-builders-community']

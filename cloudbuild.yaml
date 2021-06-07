@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/node-app-$BUILD_ID', 'task3/dockerapp']
+  timeout: 500s
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/node-app-$BUILD_ID']

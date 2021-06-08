@@ -43,7 +43,7 @@ service:
 
 
 ingress:
-  enabled: true
+  enabled: false
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:

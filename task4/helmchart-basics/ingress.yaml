@@ -11,5 +11,5 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: nodeapp-helm-chart
+          serviceName: node-app-green-helm-chart
           servicePort: 80

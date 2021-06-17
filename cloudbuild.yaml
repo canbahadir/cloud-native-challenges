@@ -15,5 +15,5 @@ steps:
     args: ['upgrade', '--install', '--cleanup-on-fail', 'node-app-blue', 'task4/helm-chart/', '--set', 'image.repository=gcr.io/$PROJECT_ID/node-app-$BUILD_ID']
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
-    - 'CLOUDSDK_CONTAINER_CLUSTER=jenkinscluster'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster'
 tags: ['cloud-builders-community']

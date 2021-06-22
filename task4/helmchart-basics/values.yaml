@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/casestudy-307604/node-app
+  repository: gcr.io/cloudstudy-317120/node-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"

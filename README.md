@@ -216,13 +216,8 @@ STEPS:
     sudo docker run -p 4000:80 --name my-app node-app:0.1
     curl http://localhost:4000/bcfm
 
-### TASK 4
-Create a CI/CD environment for app created in task3.
-    - Choose whatever tool you want
-    - CI/CD should start when there is a commit
-    - There should a SonarQube Check with QualityGate Check.
-    - CI/CD should deploy app to kubernetes with helm chart
-    - app should scale up to 10 pods when there is more %40 percent cpu usage
+
+#### For kubernetes(GKE):
 
 
 Create a api key to upload docker image to gcloud so helm can deploy from there
@@ -241,7 +236,7 @@ verify access
 
 Retag docker image
 
-    sudo docker tag node-app:0.3 gcr.io/casestudy-307604/node-app
+    sudo docker tag node-app:0.1 gcr.io/casestudy-307604/node-app
 
 
 Push docker image
@@ -257,6 +252,48 @@ Update helm-chart/values.yaml and helm-chart/templates/services.yaml according t
 Deploy helm chart
 
     helm install nodeapp helm-chart/
+
+Reserve a regional ip
+
+    gcloud compute addresses create endpoints-ip --region us-central1
+
+Get ip
+
+[vagrant@localhost ~]$ gcloud compute addresses list
+NAME          ADDRESS/RANGE   TYPE      PURPOSE  NETWORK  REGION       SUBNET  STATUS
+endpoints-ip  xxx.xxx.xxx.xxx  EXTERNAL                    us-central1          IN_USE
+
+Deploy ingress resource:
+
+    helm install nginx-ingress ingress-nginx/ingress-nginx --set rbac.create=true --set controller.service.loadBalancerIP="xxx.xxx.xxx.xxx"
+
+Apply ingress resource to sync with app service:
+
+    kubectl apply -f /home/vagrant/cloud-native-challenges/task4/helmchart-basics/ingress.yaml
+
+(Optional) To forward it to domain add new record on your domain panel
+
+    Type: A Record
+    Host: <preferred subdomain> // i defined "case"
+    Value: <regional ip that we got above>
+    TTL: Automatic
+
+Now my app is reachable at
+
+case.bahadircan.com
+
+case.bahadircan.com/bcfm
+
+### TASK 4
+Create a CI/CD environment for app created in task3.
+    - Choose whatever tool you want
+    - CI/CD should start when there is a commit
+    - There should a SonarQube Check with QualityGate Check.
+    - CI/CD should deploy app to kubernetes with helm chart
+    - app should scale up to 10 pods when there is more %40 percent cpu usage
+
+
+
 
 
 ### TASK 5

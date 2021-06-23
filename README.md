@@ -202,6 +202,23 @@ Now kubectl should be able to access nodes.
     node3   Ready    master   9d    v1.17.12
     node4   Ready    <none>   9d    v1.17.12
 
+
+#### For kubernetes(GKE):
+
+Enable some services to use in further steps.
+
+    gcloud services enable sourcerepo.googleapis.com
+    gcloud services enable compute.googleapis.com
+    gcloud services enable servicemanagement.googleapis.com
+    gcloud services enable storage-api.googleapis.com
+    gcloud services enable service:container.googleapis.com
+    gcloud services enable container.googleapis.com
+
+Deploy a typical GKE cluster.
+
+    gcloud container clusters create developmentcluster --machine-type=n1-standard-1 --num-nodes 1 --enable-autoscaling --min-nodes 1 --max-nodes 2
+
+
 ### TASK 2
 
 ### TASK 3
@@ -216,13 +233,8 @@ STEPS:
     sudo docker run -p 4000:80 --name my-app node-app:0.1
     curl http://localhost:4000/bcfm
 
-### TASK 4
-Create a CI/CD environment for app created in task3.
-    - Choose whatever tool you want
-    - CI/CD should start when there is a commit
-    - There should a SonarQube Check with QualityGate Check.
-    - CI/CD should deploy app to kubernetes with helm chart
-    - app should scale up to 10 pods when there is more %40 percent cpu usage
+
+#### For kubernetes(GKE):
 
 
 Create a api key to upload docker image to gcloud so helm can deploy from there
@@ -241,7 +253,7 @@ verify access
 
 Retag docker image
 
-    sudo docker tag node-app:0.3 gcr.io/casestudy-307604/node-app
+    sudo docker tag node-app:0.1 gcr.io/casestudy-307604/node-app
 
 
 Push docker image
@@ -258,6 +270,76 @@ Deploy helm chart
 
     helm install nodeapp helm-chart/
 
+Reserve a regional IP
+
+    gcloud compute addresses create endpoints-ip --region us-central1
+
+Get IP
+
+    [vagrant@localhost ~]$ gcloud compute addresses list
+    NAME          ADDRESS/RANGE   TYPE      PURPOSE  NETWORK  REGION       SUBNET  STATUS
+    endpoints-ip  xxx.xxx.xxx.xxx  EXTERNAL                    us-central1          IN_USE
+
+Deploy ingress resource:
+
+    helm install nginx-ingress ingress-nginx/ingress-nginx --set rbac.create=true --set controller.service.loadBalancerIP="xxx.xxx.xxx.xxx"
+
+Apply ingress resource to sync with app service:
+
+    kubectl apply -f /home/vagrant/cloud-native-challenges/task4/helmchart-basics/ingress.yaml
+
+(Optional) To forward it to domain add new record on your domain panel
+
+    Type: A Record
+    Host: <preferred subdomain> // i defined "case"
+    Value: <regional ip that we got above>
+    TTL: Automatic
+
+Now my app is reachable at
+
+case.bahadircan.com
+
+case.bahadircan.com/bcfm
+
+### TASK 4
+Create a CI/CD environment for app created in task3.
+    - Choose whatever tool you want
+    - CI/CD should start when there is a commit
+    - There should a SonarQube Check with QualityGate Check.
+    - CI/CD should deploy app to kubernetes with helm chart
+    - app should scale up to 10 pods when there is more %40 percent cpu usage
+
+#### Solution with GKE
+
+Used Cloud Build as CI tool.
+
+CI configuration file can be found with name couldbuild.yaml in this repo.
+This CI configuration consist of 4 steps and triggered by commit to main branch.
+
+1. Sonarqube scan of repo with QualityGate(default settings) check.
+2. Creating a new docker image from task3/dockerapp folder.
+3. Pushing new image to GCR (Google Container Registry)
+4. Deploying or if deployed, upgrading helm chart with new image.
+
+
+To do these steps there are prerequisities:
+ 
+Go to cloud build settings and enable Kubernetes Engine Developer role for cloud build. Otherwise it cannot access to GKE clusters.
+
+By default cloud build does not include sonar scanner and helm images so cant use those commands.
+
+To enable them we should push images to our project. There is a cloud-builders-community github repository for managing those images easily. To do this run following commands.
+
+    git clone https://github.com/GoogleCloudPlatform/cloud-builders-community.git
+    cd cloud-builders-community/helm
+    gcloud builds submit . --config=cloudbuild.yaml
+    cd ../sonarqube/
+    gcloud builds submit . --config=cloudbuild.yaml
+
+Also to use sonarscanner we need to create a sonarqube account, connect our repository and get credentials for cloud build. Check https://sonarcloud.io/ .
+
+Now everything is ready to work within cloud build.
+Go to cloud build page, navigate to triggers section, click to create trigger. Connect github account/repository select main branch and select trigger on commit.
 
 ### TASK 5
 

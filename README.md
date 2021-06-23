@@ -1,9 +1,7 @@
 # cloud-native-challenges
 Challenges I worked on from various sources.
 
-
-## BCFM
-
+## May Challenges - 1 
 ### TASK 0
 Setup a vagrant environment to work with. Then use it with VS Code.
 
@@ -288,27 +286,7 @@ Apply ingress resource to sync with app service:
 
     kubectl apply -f /home/vagrant/cloud-native-challenges/task4/helmchart-basics/ingress.yaml
 
-(Optional) To forward it to domain add new record on your domain panel
-
-    Type: A Record
-    Host: <preferred subdomain> // i defined "case"
-    Value: <regional ip that we got above>
-    TTL: Automatic
-
-Now my app is reachable at
-
-case.bahadircan.com
-
-case.bahadircan.com/bcfm
-
 ### TASK 4
-Create a CI/CD environment for app created in task3.
-    - Choose whatever tool you want
-    - CI/CD should start when there is a commit
-    - There should a SonarQube Check with QualityGate Check.
-    - CI/CD should deploy app to kubernetes with helm chart
-    - app should scale up to 10 pods when there is more %40 percent cpu usage
-
 #### Solution with GKE
 
 Used Cloud Build as CI tool.
@@ -336,11 +314,58 @@ To enable them we should push images to our project. There is a cloud-builders-c
     cd ../sonarqube/
     gcloud builds submit . --config=cloudbuild.yaml
 
-Also to use sonarscanner we need to create a sonarqube account, connect our repository and get credentials for cloud build. Check https://sonarcloud.io/ .
+Also to use sonarscanner we need to create a sonarqube account, connect our repository and get credentials for cloud build. Check https://sonarcloud.io/ . Following parameters needed to be filled.
+
+    - '-Dsonar.host.url=https://sonarcloud.io'
+    - '-Dsonar.login=<AUTH_TOKEN - get from https://sonarcloud.io/account/security/'
+    - '-Dsonar.projectKey=canbahadir_cloud-native-challenges' // get yours from sonarqube project page > Analysis Method > Other CI > Other (for JS, TS, Go, Python, PHP, ...) > Linux 
+    - '-Dsonar.organization=canbahadir' // get yours from sonarqube project page > Analysis Method > Other CI > Other (for JS, TS, Go, Python, PHP, ...) > Linux  
+    - '-Dsonar.sources=.' 
 
 Now everything is ready to work within cloud build.
-Go to cloud build page, navigate to triggers section, click to create trigger. Connect github account/repository select main branch and select trigger on commit.
+Go to cloud build page, navigate to triggers section, click to create trigger. Connect github account/repository select main branch and select trigger on commit. It will work on commit and results also will be seen on github commits.
+
+
+Note: App scaling is defined inside helm chart values.yaml file.
+
+    autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 40
 
 ### TASK 5
 
+To forward it to domain add new record on your domain panel
+
+    Type: A Record
+    Host: <preferred subdomain> // i defined "case"
+    Value: <regional ip that we got above>
+    TTL: Automatic
+
+Now my app is reachable at:
+
+[case.bahadircan.com](case.bahadircan.com)
+
+[case.bahadircan.com/bcfm](case.bahadircan.com/bcfm)
+
 ### TASK 6
+
+There is a different branch called development for this:
+
+This has a different string to be shown for main page on node app.
+
+To do a blue/green deployment I created a 7 step CI configuration.
+
+
+1. Sonarqube scan of repo with QualityGate(default settings) check.
+2. Creating a new docker image from task3/dockerapp folder.
+3. Pushing new image to GCR (Google Container Registry)
+4. Changing ingress backend to main/blue deployment.
+5. Deploying or if deployed, upgrading a green deployment helm chart with new image. 
+6. Wait for green deployment pod to be ready
+7. Changing ingress backend to development/green deployment.
+
+
+Go to cloud build page, navigate to triggers section, click to create trigger. Connect github account/repository select development branch and select trigger on commit. It will work on commit and results also will be seen on github commits as seen on Task 4.
+

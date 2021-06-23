@@ -12,8 +12,16 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/node-app-$BUILD_ID']
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: [ 'patch', 'ingress', 'ingress-resource', '--type=json', '-p=''[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value":"node-app-blue-helm-chart"}]'' ']
-    env: ['CLOUDSDK_COMPUTE_ZONE=us-central1-c', 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster']
+    args:
+    - "patch"
+    - "ingress"
+    - "ingress-resource"
+    - "--type=json"
+    - "-p"
+    - "[{\"op\": \"replace\", \"path\": \"/spec/rules/0/http/paths/0/backend/service/name\", \"value\":\"node-app-blue-helm-chart\"}]"
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster'
   - name: 'gcr.io/$PROJECT_ID/helm'
     args: ['upgrade', '--install', '--cleanup-on-fail', 'node-app-green', 'task4/helm-chart/', '--set', 'image.repository=gcr.io/$PROJECT_ID/node-app-$BUILD_ID']
     env:
@@ -30,8 +38,16 @@ steps:
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
     - 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster'
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: [ 'patch', 'ingress', 'ingress-resource', '--type=json', '-p=''[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value":"node-app-green-helm-chart"}]'' ' ]
-    env: ['CLOUDSDK_COMPUTE_ZONE=us-central1-c', 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster']
+    args:
+    - "patch"
+    - "ingress"
+    - "ingress-resource"
+    - "--type=json"
+    - "-p"
+    - "[{\"op\": \"replace\", \"path\": \"/spec/rules/0/http/paths/0/backend/service/name\", \"value\":\"node-app-green-helm-chart\"}]"
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster'
 
 tags: ['cloud-builders-community']
 

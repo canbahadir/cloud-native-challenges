@@ -32,8 +32,9 @@ steps:
     - 'wait'
     - '--for=condition=ready'
     - '--timeout=120s'
-    - 'deployment'
-    - 'node-app-green-helm-chart'
+    - 'pod'
+    - '-l'
+    - 'app.kubernetes.io/instance=node-app-green'
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
     - 'CLOUDSDK_CONTAINER_CLUSTER=developmentcluster'

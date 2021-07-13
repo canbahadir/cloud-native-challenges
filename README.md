@@ -2,6 +2,12 @@
 Challenges I worked on from various sources.
 
 ## May Challenges - 1 
+
+Overall architecture
+
+![GKE Architecture](https://github.com/canbahadir/cloud-native-challenges/blob/main/gke-architecture.png?raw=true)
+
+
 ### TASK 0
 Setup a vagrant environment to work with. Then use it with VS Code.
 
@@ -218,6 +224,53 @@ Deploy a typical GKE cluster.
 
 
 ### TASK 2
+This task actually done last.
+
+
+Add prometheus-community helm repo
+
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update
+
+Apply a kube-prometheus-stack deployment using helm on a different namespace
+
+    helm install promstack prometheus-community/kube-prometheus-stack --create-namespace --namespace=monitoring
+
+
+Check if pods and services are ok
+
+    kubectl get pods --all-namespaces
+    kubectl get svc --all-namespaces
+
+Get a second static ip to forward
+
+    gcloud compute addresses create grafana-ip --region us-central1
+    gcloud compute addresses list
+
+Set second ingress controller with different class and with newly created static ip
+
+    helm install monitoring-ingress ingress-nginx/ingress-nginx --set rbac.create=true --set controller.service.loadBalancerIP=<grafana-ip> --set controller.ingressClass=nginx-monitoring  --namespace=monitoring
+    kubectl --namespace monitoring get services -o wide -w monitoring-ingress-ingress-nginx-controller
+
+Apply ingress resource with following command
+
+    kubectl apply -f cloud-native-challenges/task2/ingress-monitoring.yaml
+
+Update password of Grafana user
+
+    kubectl exec --namespace monitoring -c grafana -it $(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}") -- grafana-cli admin reset-admin-password <newpassword>
+
+To forward it to domain add new record on your domain panel
+
+    Type: A Record
+    Host: <preferred subdomain> // i defined "grafana"
+    Value: <regional ip that we got above>
+    TTL: Automatic
+
+Now my app is reachable at:
+
+[grafana.bahadircan.com](grafana.bahadircan.com)
+
 
 ### TASK 3
 Create an app which serves "/bcfm" page. 

@@ -422,3 +422,38 @@ To do a blue/green deployment I created a 7 step CI configuration.
 
 Go to cloud build page, navigate to triggers section, click to create trigger. Connect github account/repository select development branch and select trigger on commit. It will work on commit and results also will be seen on github commits as seen on Task 4.
 
+
+
+### Bonus Part 1
+
+#### Chaos Engineering with Gremlin
+
+We can apply various system resource test with gremlin free tier and test our systems reliability.
+
+
+https://www.gremlin.com/blog/introducing-gremlin-free/
+
+
+Signup/login from here: https://app.gremlin.com/signup
+
+Add Gremlin helm repo
+
+    helm repo add gremlin https://helm.gremlin.com
+
+Create Gremlin namespace
+
+    kubectl create namespace gremlin
+
+Go to Team Settings > Configuration Page from Gremlin website.  Get TEAM_ID and create TEAM_SECRET from this page. Give anything to clusterID as you wish.
+
+Deploy Gremlin
+
+    helm install gremlin gremlin/gremlin \
+        --namespace gremlin \
+        --set gremlin.secret.managed=true \
+        --set gremlin.secret.type=secret \
+        --set gremlin.secret.teamID=$GREMLIN_TEAM_ID \
+        --set gremlin.secret.clusterID=$GREMLIN_CLUSTER_ID \
+        --set gremlin.secret.teamSecret=$GREMLIN_TEAM_SECRET
+
+Now we should be able to see our cluster on Gremlin GUI. From there either click attack or click scenario to design and start a chaos engineering test.
